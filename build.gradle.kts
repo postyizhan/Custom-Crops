@@ -28,10 +28,24 @@ subprojects {
     }
 }
 
-fun versionBanner() = project.providers.exec {
-    commandLine("git", "rev-parse", "--short=8", "HEAD")
-}.standardOutput.asText.map { it.trim() }.getOrElse("Unknown")
+fun versionBanner(): String {
+    return try {
+        project.providers.exec {
+            commandLine("git", "rev-parse", "--short=8", "HEAD")
+        }.standardOutput.asText.map { it.trim() }.getOrElse("Unknown")
+    } catch (e: Exception) {
+        // 在 GitHub Actions 或其他 CI 环境中，使用环境变量或默认值
+        System.getenv("GITHUB_SHA")?.take(8) ?: "Unknown"
+    }
+}
 
-fun builder() = project.providers.exec {
-    commandLine("git", "config", "user.name")
-}.standardOutput.asText.map { it.trim() }.getOrElse("Unknown")
+fun builder(): String {
+    return try {
+        project.providers.exec {
+            commandLine("git", "config", "user.name")
+        }.standardOutput.asText.map { it.trim() }.getOrElse("Unknown")
+    } catch (e: Exception) {
+        // 在 GitHub Actions 或其他 CI 环境中，使用环境变量或默认值
+        System.getenv("GITHUB_ACTOR") ?: "GitHub Actions"
+    }
+}
